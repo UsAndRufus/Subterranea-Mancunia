@@ -25,6 +25,7 @@ def create_nodes():
     #node11 = Junction("Junction 11", (1040,580), 11)
     #node12 = Junction("Junction 12", (1140,635), 12)
 
+    #Destinations
     jrlib = Destination("John Ryland's Library", (720,587), "path/to/img")
     mosi = Destination("MOSI", (438, 804), "path/to/img")
 
@@ -40,6 +41,14 @@ def create_nodes():
     #nodes = [node1, node2, node3, node4, node5, node6, node7,
     #         node8, node9, node10, node11, node12, node13, node14]
     return nodes
+
+def create_entities(nodes):
+    entity1 = Entity("Badger", nodes[2])
+    entity2 = Entity("Badger", nodes[2])
+    entity3 = Entity("Scientist", nodes[1])
+
+    entities = [entity1, entity2, entity3]
+    return entities
 
 def create_window(res_tuple, image_location):
     #create the screen
@@ -84,6 +93,17 @@ def render_nodes(window, nodes, links):
         text_pos.midleft = node.pos
         window.blit(text, text_pos)
     pygame.display.flip()
+
+def render_entities(window, entities):
+    triangle = [(-20,18),(0,-17),(20,18)]
+
+    for entity in entities:
+        pos = entity.current_node.pos
+        translated_triangle =[
+            (t[0] + pos[0], t[1] + pos[1]) for t in triangle ]
+        pygame.draw.polygon(window, pygame.Color(100,0,150),translated_triangle)
+    pygame.display.flip()
+    
         
 
 #------------------#
@@ -118,17 +138,20 @@ class Game(object):
 pygame.font.init()
 default_font = pygame.font.SysFont("trebuchetms", 15)
 
-#global list of all nodes
 new_nodes = create_nodes()
 
 #create Game
 game = Game("medium", new_nodes)
+
+entities = create_entities(game.nodes)
 
 #start window        
 pygame.init() 
 window = create_window((1920,1080), "images/map_draft.png")
 
 render_nodes(window, game.nodes, game.links)
+
+render_entities(window, entities)
 
 
 #input handling (somewhat boilerplate code):
