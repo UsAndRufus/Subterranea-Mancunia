@@ -3,7 +3,7 @@ from sets import Set
 
 from node import *
 from entity import Entity
-from bezier import Bezier
+from bezier import Bezier, Link
 
 import pygame
 
@@ -14,8 +14,8 @@ import pygame
 def create_nodes():
     #Junctions
     pic = Junction("Piccadilly Station", (1464,790), 1)
-    vic = Junction("Victoria Station", (985,92), 2)
-    quay = Junction("Quay Street", (446,574), 3)
+    vic = Junction("Victoria Station", (968,92), 2)
+    quay = Junction("Quay Street", (450,580), 3)
     chepstow = Junction("Chepstow", (952,894), 4)
     deansgate = Junction("Deansgate Den", (683,742), 5)
     #node6 = Junction("Junction 6", (540,305), 6)
@@ -31,24 +31,29 @@ def create_nodes():
     mosi = Destination("MOSI", (438, 804), "path/to/img")
 
     #create links
-    pic.links = [vic, chepstow]
-    vic.links = [pic, quay]
-    quay.links = [deansgate, mosi]
-    chepstow.links = [deansgate, pic]
-    deansgate.links = [quay, chepstow, mosi, jrlib]
+    #pic.links = [vic, chepstow]
+    #vic.links = [pic, quay]
+    #quay.links = [deansgate, mosi]
+    #chepstow.links = [deansgate, pic]
+    #deansgate.links = [quay, chepstow, mosi, jrlib]
 
-    nodes = [pic, vic, quay, chepstow, deansgate, jrlib, mosi]
+    quay_vic = Link(quay, vic, (511,495), (869,410), 20)
+    #quay_vic = Link(quay, vic, (511,495), (1000,1000), 20)
+    quay.links = [quay_vic]
+
+    #nodes = [pic, vic, quay, chepstow, deansgate, jrlib, mosi]
+    nodes = [quay, vic]
 
     #nodes = [node1, node2, node3, node4, node5, node6, node7,
     #         node8, node9, node10, node11, node12, node13, node14]
     return nodes
 
 def create_entities(nodes):
-    entity1 = Entity("Badger", nodes[3], 10,"images/Entities/triangle_alpha.png")
-    entity2 = Entity("Badger", nodes[2], 10,"images/Entities/triangle_alpha.png")
-    entity3 = Entity("Scientist", nodes[1], 20,"images/Entities/triangle_alpha.png")
+    entity1 = Entity("Badger", nodes[1], 1,"images/Entities/triangle_alpha.png")
+    entity2 = Entity("Badger", nodes[0], 1,"images/Entities/triangle_alpha.png")
+    entity3 = Entity("Scientist", nodes[1], 2,"images/Entities/triangle_alpha.png")
 
-    entities = pygame.sprite.LayeredDirty(entity1, entity2, entity3)
+    entities = pygame.sprite.LayeredDirty(entity2)
     return entities
 
 def create_window(res_tuple, image_location):
@@ -65,12 +70,21 @@ def create_window(res_tuple, image_location):
 
 def render_nodes(background, nodes, links):
     #draw links
+    '''
     for link in links:
         pygame.draw.line(background, pygame.Color(255,255,100),
                          link[0].pos, link[1].pos, 10)
+    '''
     
     #draw nodes
     for node in nodes:
+
+        rect = pygame.Rect(0,0,10,10)
+        for l in node.links:
+            for t in [x * 0.01 for x in range(0,100)]:  
+                rect.center = l(t)
+                pygame.draw.rect(background, pygame.Color(25,200,255), rect)
+        
         if isinstance(node, Junction):
             #draw Junction
             if node.isOn:
@@ -156,14 +170,17 @@ entities.clear(window, background)
 
 clock = pygame.time.Clock()
 
+entities.sprites()[0].move_to(game.nodes[1], game.nodes[0].links[0])
+
+
 running = True
 while running:
     clock.tick(60)
-    print(clock.get_fps())
     
     #event handling, bit rubbish for now
     for event in pygame.event.get(): 
-      if event.type == pygame.KEYDOWN: 
+      if event.type == pygame.KEYDOWN:
+          print("FPS: " + str(clock.get_fps()))
           running = False
 
     entities.update()

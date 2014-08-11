@@ -12,7 +12,6 @@ class Bezier(object):
         # 1-t = u
 
         assert 0 <= t <= 1
-        
         u = 1 - t
 
         #list comprehension multiplies each term in tuple
@@ -22,7 +21,13 @@ class Bezier(object):
         term4 = tuple([t*t*t*i for i in self.p3])
 
         result = (term1[0] + term2[0] + term3[0] + term4[0]), (term1[1] + term2[1] + term3[1] + term4[1])
-
         return result
+
+class Link(Bezier):
+    def __init__(self, node1, node2, control1, control2, length):
+        super(Link, self).__init__(node1.pos, control1, control2, node2.pos)
+        self.node1 = node1
+        self.node2 = node2
+        self.length = length
 
         
