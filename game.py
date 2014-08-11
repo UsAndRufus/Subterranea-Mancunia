@@ -44,11 +44,11 @@ def create_nodes():
     return nodes
 
 def create_entities(nodes):
-    entity1 = Entity("Badger", nodes[3], "images/Entities/triangle.png")
-    entity2 = Entity("Badger", nodes[2], "images/Entities/triangle.png")
-    entity3 = Entity("Scientist", nodes[1], "images/Entities/triangle.png")
+    entity1 = Entity("Badger", nodes[3], 10,"images/Entities/triangle_alpha.png")
+    entity2 = Entity("Badger", nodes[2], 10,"images/Entities/triangle_alpha.png")
+    entity3 = Entity("Scientist", nodes[1], 20,"images/Entities/triangle_alpha.png")
 
-    entities = pygame.sprite.Group(entity1, entity2, entity3)
+    entities = pygame.sprite.LayeredDirty(entity1, entity2, entity3)
     return entities
 
 def create_window(res_tuple, image_location):
@@ -61,15 +61,12 @@ def create_window(res_tuple, image_location):
     mapimagerect = mapimage.get_rect()
     window.blit(mapimage, mapimagerect)
 
-    #draw it to the screen
-    pygame.display.flip()
-
     return window
 
-def render_nodes(window, nodes, links):
+def render_nodes(background, nodes, links):
     #draw links
     for link in links:
-        pygame.draw.line(window, pygame.Color(255,255,100),
+        pygame.draw.line(background, pygame.Color(255,255,100),
                          link[0].pos, link[1].pos, 10)
     
     #draw nodes
@@ -80,23 +77,21 @@ def render_nodes(window, nodes, links):
                 width = 0
             else:
                 width = 5
-            pygame.draw.circle(window, pygame.Color(255,50,100),
+            pygame.draw.circle(background, pygame.Color(255,50,100),
                                node.pos, 20, width)
         else:
             #draw Destination
             #creates a rect to draw: tuple operation minuses 20 from each item
             rect = pygame.Rect(0, 0, 40, 40)
             rect.center = node.pos
-            pygame.draw.rect(window, pygame.Color(50,200,200), rect)
+            pygame.draw.rect(background, pygame.Color(50,200,200), rect)
         #draw text
         text = default_font.render(node.name, True, (0, 0, 0))
         text_pos = text.get_rect()
         text_pos.midleft = node.pos
-        window.blit(text, text_pos)
-    pygame.display.flip()
+        background.blit(text, text_pos)
 
 def render_entities(window, entities):
-    '''
     triangle = [(-20,18),(0,-17),(20,18)]
 
     for entity in entities:
@@ -106,10 +101,7 @@ def render_entities(window, entities):
         pygame.draw.polygon(window, pygame.Color(100,0,150),translated_triangle)
     
     pygame.display.flip()
-    '''
 
-    entities.draw(window)
-    pygame.display.flip()
         
 
 #--------------------#
@@ -140,6 +132,12 @@ class Game(object):
 #Runtime#
 #-------#
 
+#start window        
+pygame.init() 
+window = create_window((1920,1080), "images/map_draft.png")
+background = pygame.image.load("images/map_draft.png").convert()
+background_rect = background.get_rect()
+
 #initialise fonts
 pygame.font.init()
 default_font = pygame.font.SysFont("trebuchetms", 15)
@@ -151,28 +149,34 @@ game = Game("medium", new_nodes)
 
 entities = create_entities(game.nodes)
 
-#start window        
-pygame.init() 
-window = create_window((1920,1080), "images/map_draft.png")
+render_nodes(background, game.nodes, game.links)
+window.blit(background, background_rect)
 
-render_nodes(window, game.nodes, game.links)
+entities.clear(window, background)
 
-render_entities(window, entities)
-
-bez = Bezier([(100,100),(125,125),(175,125),(200,100)])
-print(bez(0))
-print(bez(0.5))
-print(bez(1))
+clock = pygame.time.Clock()
 
 running = True
-#input handling (somewhat boilerplate code):
-while running: 
-   for event in pygame.event.get(): 
+while running:
+    clock.tick(60)
+    print(clock.get_fps())
+    
+    #event handling, bit rubbish for now
+    for event in pygame.event.get(): 
       if event.type == pygame.KEYDOWN: 
           running = False
-      else:
-          pass
-          #print event
+
+    entities.update()
+
+    #render
+    
+    #entities
+    dirty_rects = entities.draw(window)
+    pygame.display.update(dirty_rects)
+
+
+    pygame.display.flip()
+    
 pygame.quit()
 
 
