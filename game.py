@@ -3,11 +3,12 @@ from sets import Set
 
 from node import *
 from entity import Entity
+from bezier import Bezier
 
 import pygame
 
 #--------------------#
-#Method definitions#
+# Method definitions #
 #--------------------#
 
 def create_nodes():
@@ -43,11 +44,11 @@ def create_nodes():
     return nodes
 
 def create_entities(nodes):
-    entity1 = Entity("Badger", nodes[2])
-    entity2 = Entity("Badger", nodes[2])
-    entity3 = Entity("Scientist", nodes[1])
+    entity1 = Entity("Badger", nodes[3], "images/Entities/triangle.png")
+    entity2 = Entity("Badger", nodes[2], "images/Entities/triangle.png")
+    entity3 = Entity("Scientist", nodes[1], "images/Entities/triangle.png")
 
-    entities = [entity1, entity2, entity3]
+    entities = pygame.sprite.Group(entity1, entity2, entity3)
     return entities
 
 def create_window(res_tuple, image_location):
@@ -95,6 +96,7 @@ def render_nodes(window, nodes, links):
     pygame.display.flip()
 
 def render_entities(window, entities):
+    '''
     triangle = [(-20,18),(0,-17),(20,18)]
 
     for entity in entities:
@@ -102,13 +104,17 @@ def render_entities(window, entities):
         translated_triangle =[
             (t[0] + pos[0], t[1] + pos[1]) for t in triangle ]
         pygame.draw.polygon(window, pygame.Color(100,0,150),translated_triangle)
-    pygame.display.flip()
     
+    pygame.display.flip()
+    '''
+
+    entities.draw(window)
+    pygame.display.flip()
         
 
-#------------------#
-#Object definitions#
-#------------------#
+#--------------------#
+# Object definitions #
+#--------------------#
 
 #class to handle conceptual elements of the game
 #node states, enemies & locations
@@ -153,14 +159,20 @@ render_nodes(window, game.nodes, game.links)
 
 render_entities(window, entities)
 
+bez = Bezier([(100,100),(125,125),(175,125),(200,100)])
+print(bez(0))
+print(bez(0.5))
+print(bez(1))
 
+running = True
 #input handling (somewhat boilerplate code):
-while True: 
+while running: 
    for event in pygame.event.get(): 
       if event.type == pygame.KEYDOWN: 
-          sys.exit(0) 
+          running = False
       else:
           pass
-          #print event 
+          #print event
+pygame.quit()
 
 
