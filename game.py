@@ -40,9 +40,10 @@ def create_nodes():
     quay_vic = Link(quay, vic, (511,495), (869,410), 20)
     #quay_vic = Link(quay, vic, (511,495), (1000,1000), 20)
     quay.links = [quay_vic]
+    vic.links = [quay_vic]
 
-    #nodes = [pic, vic, quay, chepstow, deansgate, jrlib, mosi]
-    nodes = [quay, vic]
+    nodes = [quay, vic, pic, chepstow, deansgate, jrlib, mosi]
+    #nodes = [quay, vic]
 
     #nodes = [node1, node2, node3, node4, node5, node6, node7,
     #         node8, node9, node10, node11, node12, node13, node14]
@@ -170,18 +171,25 @@ entities.clear(window, background)
 
 clock = pygame.time.Clock()
 
-entities.sprites()[0].move_to(game.nodes[1], game.nodes[0].links[0])
-
 
 running = True
 while running:
     clock.tick(60)
-    
+
     #event handling, bit rubbish for now
     for event in pygame.event.get(): 
-      if event.type == pygame.KEYDOWN:
-          print("FPS: " + str(clock.get_fps()))
-          running = False
+        if event.type == pygame.KEYDOWN:
+            print("FPS: " + str(clock.get_fps()))
+            running = False
+        elif event.type == pygame.MOUSEBUTTONDOWN:
+            game.nodes[0].open = not game.nodes[0].open
+            game.nodes[1].open = not game.nodes[1].open
+
+    if entities.sprites()[0].moving == False:
+        if entities.sprites()[0].current_node.name == "Quay Street":
+            entities.sprites()[0].move_to(game.nodes[1], game.nodes[0].links[0])
+        else:
+            entities.sprites()[0].move_to(game.nodes[0], game.nodes[1].links[0])
 
     entities.update()
 

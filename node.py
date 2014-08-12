@@ -3,7 +3,8 @@ class Node(object):
         #parse parameters into attributes
         self.name = name
         self.pos = pos
-
+        
+        self.open = True
         self.links = []
 
 class Junction(Node):
