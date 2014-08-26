@@ -33,7 +33,7 @@ class Entity(pygame.sprite.DirtySprite):
 
     def move(self):
         #calculate step based on speed, framerate, and length
-        dist = 1 / float(self.speed * 20 * self.current_link.length)
+        dist = 1 / float(self.speed * 60 * self.current_link.length)
         self.travelled += dist
         #if next_node becomes closed, go back to where you came from
         #but only if you can see that it is closed

@@ -6,6 +6,20 @@ from entity import Entity
 from bezier import Bezier, Link
 
 import pygame
+from pygame.locals import * #lets us use KEYDOWN rather than pygame.KEYDOWN etc.
+
+#-----------#
+# Constants #
+#-----------#
+
+#23 is user defined event ID
+NETWORK_HARDWARE = 23
+
+#IDs for the different hardware
+JUNCTION = 1
+SCIENCE = 2
+COMMANDER = 3
+RADIO = 4
 
 #--------------------#
 # Method definitions #
@@ -171,20 +185,48 @@ entities.clear(window, background)
 
 clock = pygame.time.Clock()
 
+#testing
+junction_event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":JUNCTION,"j1":True})
+science_event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":SCIENCE,"s1":True})
+commander_event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":COMMANDER,"has_power":True})
+radio_event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":RADIO,"frequency":55})
 
+pygame.event.post(junction_event)
+pygame.event.post(science_event)
+pygame.event.post(radio_event)
+pygame.event.post(commander_event)
+
+#Game loop
 running = True
 while running:
     clock.tick(60)
 
-    #event handling, bit rubbish for now
-    for event in pygame.event.get(): 
-        if event.type == pygame.KEYDOWN:
+    pygame.event.post(junction_event)
+    pygame.event.post(science_event)
+    pygame.event.post(radio_event)
+    pygame.event.post(commander_event)
+
+    
+
+    #event handling
+    for event in pygame.event.get():
+        if event.type == NETWORK_HARDWARE:
+            if event.hardware_id == JUNCTION:
+                pass
+            if event.hardware_id == SCIENCE:
+                pass
+            if event.hardware_id == COMMANDER:
+                pass
+            if event.hardware_id == RADIO:
+                pass
+        elif event.type == KEYDOWN or event.type == QUIT:
             print("FPS: " + str(clock.get_fps()))
             running = False
-        elif event.type == pygame.MOUSEBUTTONDOWN:
+        elif event.type == MOUSEBUTTONDOWN:
             game.nodes[0].open = not game.nodes[0].open
             game.nodes[1].open = not game.nodes[1].open
 
+    #update game state
     if entities.sprites()[0].moving == False:
         if entities.sprites()[0].current_node.name == "Quay Street":
             entities.sprites()[0].move_to(game.nodes[1], game.nodes[0].links[0])
@@ -199,9 +241,8 @@ while running:
     dirty_rects = entities.draw(window)
     pygame.display.update(dirty_rects)
 
-
-    pygame.display.flip()
-    
+#if we quit    
 pygame.quit()
+sys.exit()
 
 
