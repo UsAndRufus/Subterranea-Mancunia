@@ -1,13 +1,16 @@
 #!/usr/bin/env python
 
-#Example from https://github.com/ptone/pyosc
-#Mainly for testing connections
+#This should be able to send and receive messages
+#Based on receive.py and send.py
 
-from OSC import OSCServer
+from OSC import OSCServer, OSCClient, OSCMessage
 import sys
 from time import sleep
 
 server = OSCServer( ("localhost", 7110) )
+client = OSCClient()
+server.setClient(client)
+
 server.timeout = 0
 run = True
 
@@ -28,7 +31,7 @@ def user_callback(path, tags, args, source):
     # tags will contain 'fff'
     # args is a OSCMessage with data
     # source is where the message came from (in case you need to reply)
-    print ("Now do something with", user,args,source)
+    print ("Now do something with", user,args)
 
 def quit_callback(path, tags, args, source):
     # don't do this at home (or it'll quit blender)
@@ -43,19 +46,23 @@ server.addMsgHandler( "/user/4", user_callback )
 server.addMsgHandler( "/quit", quit_callback )
 
 # user script that's called by the game engine every frame
-def each_frame():
+def each_frame(n):
     # clear timed_out flag
     server.timed_out = False
-    print("frame")
+
+    #send message
+    msg = OSCMessage("/user/1")
+    msg.append(n)
+    server.client.sendto(msg,("localhost", 7110))
+    
     # handle all pending requests then return
+    print("receive")
     while not server.timed_out:
         server.handle_request()
 
 # simulate a "game engine"
-while run:
-    # do the game stuff:
-    sleep(1)
-    # call user script
-    each_frame()
+n = 0
+
+server.serve_forever()
 
 server.close()

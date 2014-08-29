@@ -1,9 +1,12 @@
 import sys, time
 from sets import Set
+import threading
 
 from node import *
 from entity import Entity
 from bezier import Bezier, Link
+
+from OSC import OSCServer, OSCClient, OSCMessage
 
 import pygame
 from pygame.locals import * #lets us use KEYDOWN rather than pygame.KEYDOWN etc.
@@ -73,7 +76,7 @@ def create_entities(nodes):
 
 def create_window(res_tuple, image_location):
     #create the screen
-    window = pygame.display.set_mode(res_tuple, pygame.FULLSCREEN) 
+    window = pygame.display.set_mode(res_tuple) 
 
     pygame.mouse.set_visible(False)
 
@@ -131,7 +134,24 @@ def render_entities(window, entities):
     
     pygame.display.flip()
 
-        
+#Network
+def hardware_callback(addr, tags, data, client_address):
+
+    h_id = int(addr.split("/")[-1])
+
+    event = None
+
+    if h_id == JUNCTION:
+        event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":JUNCTION,"j1":True})
+    elif h_id == SCIENCE:
+        event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":SCIENCE,"s1":True})
+    elif h_id == COMMANDER:
+        event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":COMMANDER,"has_power":True})
+    elif h_id == RADIO:
+        event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":RADIO,"frequency":55})
+
+    if event != None:
+        pygame.event.post(event)
 
 #--------------------#
 # Object definitions #
@@ -171,6 +191,20 @@ background_rect = background.get_rect()
 pygame.font.init()
 default_font = pygame.font.SysFont("trebuchetms", 15)
 
+#setup server and client
+server = OSCServer( ("localhost", 7113) )
+client = OSCClient()
+server.setClient(client)
+
+server.addMsgHandler("/hardware/" + str(JUNCTION), hardware_callback)
+server.addMsgHandler("/hardware/" + str(SCIENCE), hardware_callback)
+server.addMsgHandler("/hardware/" + str(COMMANDER), hardware_callback)
+server.addMsgHandler("/hardware/" + str(RADIO), hardware_callback)
+server_thread = threading.Thread(target=server.serve_forever)
+server_thread.start()
+
+
+#create nodes
 new_nodes = create_nodes()
 
 #create Game
@@ -191,34 +225,32 @@ science_event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":SCIENCE,"s1":
 commander_event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":COMMANDER,"has_power":True})
 radio_event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":RADIO,"frequency":55})
 
-pygame.event.post(junction_event)
-pygame.event.post(science_event)
-pygame.event.post(radio_event)
-pygame.event.post(commander_event)
+#pygame.event.post(junction_event)
+#pygame.event.post(science_event)
+#pygame.event.post(radio_event)
+#pygame.event.post(commander_event)
 
 #Game loop
 running = True
 while running:
     clock.tick(60)
 
-    pygame.event.post(junction_event)
-    pygame.event.post(science_event)
-    pygame.event.post(radio_event)
-    pygame.event.post(commander_event)
-
+    #message sending testing
+    msg = OSCMessage("/user/1")
+    msg.append("hellooo tharrr")
+    server.client.sendto(msg,("localhost", 7110))
     
-
     #event handling
     for event in pygame.event.get():
         if event.type == NETWORK_HARDWARE:
             if event.hardware_id == JUNCTION:
-                pass
+                print("junction")
             if event.hardware_id == SCIENCE:
-                pass
+                print("science")
             if event.hardware_id == COMMANDER:
-                pass
+                print("commander")
             if event.hardware_id == RADIO:
-                pass
+                print("radio")
         elif event.type == KEYDOWN or event.type == QUIT:
             print("FPS: " + str(clock.get_fps()))
             running = False
@@ -241,7 +273,8 @@ while running:
     dirty_rects = entities.draw(window)
     pygame.display.update(dirty_rects)
 
-#if we quit    
+#if we quit
+server.close()
 pygame.quit()
 sys.exit()
 
