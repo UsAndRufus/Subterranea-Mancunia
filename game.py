@@ -135,14 +135,22 @@ def render_entities(window, entities):
     pygame.display.flip()
 
 #Network
-def hardware_callback(addr, tags, data, client_address):
+def hardware_callback(addr, tags, d, client_address):
+    #d is data
 
     h_id = int(addr.split("/")[-1])
 
     event = None
+    error = False
 
     if h_id == JUNCTION:
-        event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":JUNCTION,"j1":True})
+        if len(d) == 13:    
+            #create event object
+            event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":JUNCTION,
+                    "topRowOn":d[0],1:d[1],2:d[2],3:d[3],4:d[4],5:d[5],6:d[6],
+                    7:d[7],8:d[8],9:d[9],10:d[10],11:d[11],12:d[12]})
+        else:
+            error = True
     elif h_id == SCIENCE:
         event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":SCIENCE,"s1":True})
     elif h_id == COMMANDER:
@@ -152,6 +160,11 @@ def hardware_callback(addr, tags, data, client_address):
 
     if event != None:
         pygame.event.post(event)
+    if error:
+        #object malformed, return error
+        msg = OSCMessage("/user/1")
+        msg.append("Error")
+        server.client.sendto(msg,client_address)
 
 #--------------------#
 # Object definitions #
@@ -238,11 +251,13 @@ while running:
     #message sending testing
     msg = OSCMessage("/user/1")
     msg.append("hellooo tharrr")
-    server.client.sendto(msg,("localhost", 7110))
+    msg.append(100.1)
+    #server.client.sendto(msg,("localhost", 7110))
     
     #event handling
     for event in pygame.event.get():
         if event.type == NETWORK_HARDWARE:
+            print(event)
             if event.hardware_id == JUNCTION:
                 print("junction")
             if event.hardware_id == SCIENCE:

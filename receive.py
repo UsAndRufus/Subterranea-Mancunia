@@ -28,7 +28,7 @@ def user_callback(path, tags, args, source):
     # tags will contain 'fff'
     # args is a OSCMessage with data
     # source is where the message came from (in case you need to reply)
-    print ("Now do something with", user,args,source)
+    print ("Now do something with", user,tags,args,source)
 
 def quit_callback(path, tags, args, source):
     # don't do this at home (or it'll quit blender)

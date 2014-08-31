@@ -6,7 +6,7 @@ client = OSCClient()
 client.connect( ("localhost", 7113) )
 
 msg = OSCMessage("/hardware/1")
-msg.extend([1.0, 2.0, 3.0])
+msg.extend([1, 1, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0])
 client.send(msg)
 #client.send( OSCMessage("/user/2", [2.0, 3.0, 4.0 ] ) )
 #client.send( OSCMessage("/user/3", [2.0, 3.0, 3.1 ] ) )

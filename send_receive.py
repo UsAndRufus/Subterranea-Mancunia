@@ -51,18 +51,18 @@ def each_frame(n):
     server.timed_out = False
 
     #send message
-    msg = OSCMessage("/user/1")
+    msg = OSCMessage("/hardware/1")
     msg.append(n)
-    server.client.sendto(msg,("localhost", 7110))
+    server.client.sendto(msg,("localhost", 7113))
     
     # handle all pending requests then return
-    print("receive")
     while not server.timed_out:
         server.handle_request()
 
 # simulate a "game engine"
 n = 0
-
-server.serve_forever()
+while True:
+    sleep(1)
+    each_frame(n)
 
 server.close()
