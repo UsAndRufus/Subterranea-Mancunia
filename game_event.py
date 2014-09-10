@@ -4,18 +4,24 @@
 class GameEvent(object):
     def __init__(self, name):
         self.name = name
+        self.finished = False
+        self.running = False
 
+    def run(self):
+        print(self.name)
+        self.finished = True
+        self.running = True
+        
 class SpawnEvent(GameEvent):
-    def __init__(self, name, enemies, location):
+    def __init__(self, name, enemies):
         super(SpawnEvent, self).__init__(name)
         self.enemies = enemies
-        self.location = location
     def spawn():
         pass
 
 class SoundEvent(GameEvent):
     def __init__(self, name, sound):
-        super(SoundEvent, self).__init__(name):
+        super(SoundEvent, self).__init__(name)
         self.sound = sound
 
 class PhoneEvent(SoundEvent):
@@ -25,10 +31,10 @@ class PhoneEvent(SoundEvent):
 
 class WaitEvent(GameEvent):
     def __init__(self, name, time):
-        super(WaitEvent, self).__init__(name):
+        super(WaitEvent, self).__init__(name)
         self.time = time
 
 class ConditionEvent(GameEvent):
-    def __init(self, name, condition):
+    def __init__(self, name, condition):
         super(ConditionEvent, self).__init__(name)
         self.condition = condition

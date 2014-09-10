@@ -197,9 +197,7 @@ class Game(object):
 #-------#
 
 #set pygame window to be on other screen
-        
-
-os.environ['SDL_VIDEO_WINDOW_POS'] = str(1900) + "," + str(0)
+#os.environ['SDL_VIDEO_WINDOW_POS'] = str(1900) + "," + str(0)
 
 #start window        
 pygame.init() 
@@ -212,7 +210,7 @@ pygame.font.init()
 default_font = pygame.font.SysFont("trebuchetms", 15)
 
 #setup server and client
-server = OSCServer( ("localhost", 7113) )
+server = OSCServer( ("localhost", 7126) )
 client = OSCClient()
 server.setClient(client)
 
@@ -250,6 +248,25 @@ radio_event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":RADIO,"frequenc
 #pygame.event.post(radio_event)
 #pygame.event.post(commander_event)
 
+#----------------#
+# Game Sequences #
+#----------------#
+
+#Test sequence
+_phone1 = PhoneEvent("phone1", "sounds/ring.wav")
+_enemies1 = SpawnEvent("enemies1",pygame.sprite.LayeredDirty(Entity("Badger", game.nodes[1], 1,"images/Entities/triangle_alpha.png"), Entity("Badger", game.nodes[1], 1,"images/Entities/triangle_alpha.png")))
+_spawn1 = SpawnEvent("spawn1", _enemies1)
+_cond1 = ConditionEvent("cond1", "fake condition")
+_sound1 = PhoneEvent("sound1", "sounds/fake.wav")
+_wait1 = WaitEvent("wait1", 10)
+_sound2 = SoundEvent("sound2", "sounds/fake2.wav")
+
+test_seq = [_phone1, _enemies1, _spawn1, _sound1, _wait1, _sound2]
+
+seq_pos = 0
+
+###
+
 frame = 0
 
 #Game loop
@@ -266,8 +283,9 @@ while running:
     #server.client.sendto(msg,("localhost", 7110))
 
     #printer testing
+    '''
     if frame == 100:
-        '''
+        
         filename = "test.txt"
         print_args = (
           0,
@@ -277,10 +295,11 @@ while running:
           ".",
           0
         )
-        '''
+        
         print_args = ('\"C:\Program Files (x86)\Adobe\Reader 10.0\Reader\AcroRd32.exe\" /t test.pdf',)
         print_thread = threading.Thread(target = os.system, args = print_args)
         #print_thread.start()
+    '''
         
     #event handling
     for event in pygame.event.get():
@@ -300,6 +319,16 @@ while running:
         elif event.type == MOUSEBUTTONDOWN:
             game.nodes[0].open = not game.nodes[0].open
             game.nodes[1].open = not game.nodes[1].open
+
+    #handle sequence events
+    current_event = test_seq[seq_pos]
+    
+    if not current_event.finished and not current_event.running:
+        current_event.run()
+        seq_pos += 1
+        if seq_pos == 5:
+            seq_pos = 0
+         
 
     #update game state
     if entities.sprites()[0].moving == False:
