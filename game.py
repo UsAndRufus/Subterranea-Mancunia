@@ -6,6 +6,7 @@ import threading
 from node import *
 from entity import Entity
 from bezier import Bezier, Link
+from game_event import *
 
 from OSC import OSCServer, OSCClient, OSCMessage
 
@@ -263,6 +264,8 @@ while running:
     msg.append("hellooo tharrr")
     msg.append(100.1)
     #server.client.sendto(msg,("localhost", 7110))
+
+    #printer testing
     if frame == 100:
         '''
         filename = "test.txt"
@@ -277,7 +280,7 @@ while running:
         '''
         print_args = ('\"C:\Program Files (x86)\Adobe\Reader 10.0\Reader\AcroRd32.exe\" /t test.pdf',)
         print_thread = threading.Thread(target = os.system, args = print_args)
-        print_thread.start()
+        #print_thread.start()
         
     #event handling
     for event in pygame.event.get():
