@@ -73,6 +73,7 @@ def create_entities(nodes):
     entity2 = Entity("Badger", nodes[0], 1,"images/Entities/triangle_alpha.png")
     entity3 = Entity("Scientist", nodes[1], 2,"images/Entities/triangle_alpha.png")
 
+    print(entity2)
     entities = pygame.sprite.LayeredDirty(entity2)
     return entities
 
@@ -210,7 +211,7 @@ pygame.font.init()
 default_font = pygame.font.SysFont("trebuchetms", 15)
 
 #setup server and client
-server = OSCServer( ("localhost", 7126) )
+server = OSCServer( ("localhost", 7128) )
 client = OSCClient()
 server.setClient(client)
 
@@ -254,14 +255,15 @@ radio_event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":RADIO,"frequenc
 
 #Test sequence
 _phone1 = PhoneEvent("phone1", "sounds/ring.wav")
-_enemies1 = SpawnEvent("enemies1",pygame.sprite.LayeredDirty(Entity("Badger", game.nodes[1], 1,"images/Entities/triangle_alpha.png"), Entity("Badger", game.nodes[1], 1,"images/Entities/triangle_alpha.png")))
+#enemies1 is a list of enemie! Not an event!
+_enemies1 = [Entity("Badger", game.nodes[3], 1,"images/Entities/triangle_alpha.png")]
 _spawn1 = SpawnEvent("spawn1", _enemies1)
 _cond1 = ConditionEvent("cond1", "fake condition")
 _sound1 = PhoneEvent("sound1", "sounds/fake.wav")
 _wait1 = WaitEvent("wait1", 10)
 _sound2 = SoundEvent("sound2", "sounds/fake2.wav")
 
-test_seq = [_phone1, _enemies1, _spawn1, _sound1, _wait1, _sound2]
+test_seq = [_phone1, _spawn1, _sound1, _wait1, _sound2]
 
 seq_pos = 0
 
@@ -321,13 +323,26 @@ while running:
             game.nodes[1].open = not game.nodes[1].open
 
     #handle sequence events
-    current_event = test_seq[seq_pos]
+    if seq_pos < len(test_seq):
+        current_event = test_seq[seq_pos]
+
     
-    if not current_event.finished and not current_event.running:
-        current_event.run()
-        seq_pos += 1
-        if seq_pos == 5:
-            seq_pos = 0
+    
+        if not current_event.finished and not current_event.running:
+            if isinstance(current_event, SpawnEvent):
+                print("spawn")
+                for e in current_event.enemies:
+                    print(e)
+                    entities.add(e)
+            elif isinstance(current_event, PhoneEvent):
+                print("phone")
+            elif isinstance(current_event, SoundEvent):
+                print("sound")
+            elif isinstance(current_event, WaitEvent):
+                print("wait")
+            elif isinstance(current_event, ConditionEvent):
+                print("condition")
+            seq_pos += 1
          
 
     #update game state
