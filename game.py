@@ -1,4 +1,5 @@
-import sys, time
+import sys, time, os
+import win32api
 from sets import Set
 import threading
 
@@ -76,7 +77,7 @@ def create_entities(nodes):
 
 def create_window(res_tuple, image_location):
     #create the screen
-    window = pygame.display.set_mode(res_tuple) 
+    window = pygame.display.set_mode(res_tuple, NOFRAME)
 
     pygame.mouse.set_visible(False)
 
@@ -194,6 +195,11 @@ class Game(object):
 #Runtime#
 #-------#
 
+#set pygame window to be on other screen
+        
+
+os.environ['SDL_VIDEO_WINDOW_POS'] = str(1900) + "," + str(0)
+
 #start window        
 pygame.init() 
 window = create_window((1920,1080), "images/map_draft.png")
@@ -243,17 +249,36 @@ radio_event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":RADIO,"frequenc
 #pygame.event.post(radio_event)
 #pygame.event.post(commander_event)
 
+frame = 0
+
 #Game loop
 running = True
 while running:
     clock.tick(60)
+
+    frame += 1
 
     #message sending testing
     msg = OSCMessage("/user/1")
     msg.append("hellooo tharrr")
     msg.append(100.1)
     #server.client.sendto(msg,("localhost", 7110))
-    
+    if frame == 100:
+        '''
+        filename = "test.txt"
+        print_args = (
+          0,
+          "print",
+          filename,
+          '/d:\\EdwardB-ASUSN56\Toshiba4610',
+          ".",
+          0
+        )
+        '''
+        print_args = ('\"C:\Program Files (x86)\Adobe\Reader 10.0\Reader\AcroRd32.exe\" /t test.pdf',)
+        print_thread = threading.Thread(target = os.system, args = print_args)
+        print_thread.start()
+        
     #event handling
     for event in pygame.event.get():
         if event.type == NETWORK_HARDWARE:
