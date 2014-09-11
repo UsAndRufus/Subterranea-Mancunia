@@ -220,6 +220,15 @@ window = create_window((1920,1080), "images/map_draft.png")
 background = pygame.image.load("images/map_draft.png").convert()
 background_rect = background.get_rect()
 
+#initialise sounds
+pygame.mixer.init()
+ring = pygame.mixer.Sound("sounds/ring.wav")
+nine = pygame.mixer.Sound("sounds/nine.wav")
+
+sounds = {}
+sounds["ring"] = ring
+sounds["nine"] = nine
+
 #initialise fonts
 pygame.font.init()
 default_font = pygame.font.SysFont("trebuchetms", 15)
@@ -293,14 +302,14 @@ game.nodes[4].nav_net = {game.nodes[0]:game.nodes[0],game.nodes[1]:game.nodes[0]
 #----------------#
 
 #Test sequence
-_phone1 = PhoneEvent("phone1", "sounds/ring.wav")
+_phone1 = PhoneEvent("phone1", "nine")
 #enemies1 is a list of enemie! Not an event!
-_enemies1 = [Entity("Badger", game.nodes[1], 1,"images/Entities/triangle_alpha.png", game.nodes[5])]
+_enemies1 = [Entity("Badger", game.nodes[1], 1,"images/Entities/triangle_alpha.png", game.nodes[5]),Entity("Scientit", game.nodes[3], 1,"images/Entities/triangle_alpha.png", game.nodes[6])]
 _spawn1 = SpawnEvent("spawn1", _enemies1)
 _cond1 = ConditionEvent("cond1", "fake condition")
-_sound1 = PhoneEvent("sound1", "sounds/fake.wav")
+_sound1 = PhoneEvent("sound1", "nine")
 _wait1 = WaitEvent("wait1", 10)
-_sound2 = SoundEvent("sound2", "sounds/fake2.wav")
+_sound2 = SoundEvent("sound2", "nine")
 
 test_seq = [_phone1, _spawn1, _sound1, _wait1, _sound2]
 
@@ -378,9 +387,11 @@ while running:
                     entities.clear(window, background)
                 elif isinstance(current_event, PhoneEvent):
                     print("phone")
+                    sounds[current_event.sound].play()
                     seq_pos += 1
                 elif isinstance(current_event, SoundEvent):
                     print("sound")
+                    sounds[current_event.sound].play()
                     seq_pos += 1
                 elif isinstance(current_event, WaitEvent):
                     print("wait")
@@ -392,6 +403,7 @@ while running:
             #event is running
             else:
                 if isinstance(current_event, WaitEvent):
+                    #if it's a wait event, count up until you reach the time limit
                     current_event.counter += 1
                     if current_event.counter >= current_event.time * 60:
                         current_event.running = False

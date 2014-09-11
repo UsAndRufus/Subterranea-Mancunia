@@ -15,6 +15,7 @@ class SpawnEvent(GameEvent):
 class SoundEvent(GameEvent):
     def __init__(self, name, sound):
         super(SoundEvent, self).__init__(name)
+        #sound is string name of sound
         self.sound = sound
 
 class PhoneEvent(SoundEvent):
