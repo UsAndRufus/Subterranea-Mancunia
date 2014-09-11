@@ -367,22 +367,36 @@ while running:
     #handle sequence events
     if seq_pos < len(test_seq):
         current_event = test_seq[seq_pos]
-        if not current_event.finished and not current_event.running:
-            if isinstance(current_event, SpawnEvent):
-                print("spawn")
-                for e in current_event.enemies:
-                    entities.add(e)
+        if not current_event.finished:
+            if not current_event.running:
+                if isinstance(current_event, SpawnEvent):
+                    print("spawn")
+                    current_event.finished = True
+                    seq_pos += 1
+                    for e in current_event.enemies:
+                        entities.add(e)
                     entities.clear(window, background)
-            elif isinstance(current_event, PhoneEvent):
-                print("phone")
-            elif isinstance(current_event, SoundEvent):
-                print("sound")
-            elif isinstance(current_event, WaitEvent):
-                print("wait")
-            elif isinstance(current_event, ConditionEvent):
-                print("condition")
-            seq_pos += 1
-         
+                elif isinstance(current_event, PhoneEvent):
+                    print("phone")
+                    seq_pos += 1
+                elif isinstance(current_event, SoundEvent):
+                    print("sound")
+                    seq_pos += 1
+                elif isinstance(current_event, WaitEvent):
+                    print("wait")
+                    current_event.running = True
+                elif isinstance(current_event, ConditionEvent):
+                    print("condition")
+                    seq_pos += 1
+                
+            #event is running
+            else:
+                if isinstance(current_event, WaitEvent):
+                    current_event.counter += 1
+                    if current_event.counter >= current_event.time * 60:
+                        current_event.running = False
+                        current_event.finished = True
+                        seq_pos += 1
     
     #update game state
     for entity in entities.sprites():

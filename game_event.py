@@ -6,18 +6,11 @@ class GameEvent(object):
         self.name = name
         self.finished = False
         self.running = False
-
-    def run(self):
-        print(self.name)
-        self.finished = True
-        self.running = True
         
 class SpawnEvent(GameEvent):
     def __init__(self, name, enemies):
         super(SpawnEvent, self).__init__(name)
         self.enemies = enemies
-    def spawn():
-        pass
 
 class SoundEvent(GameEvent):
     def __init__(self, name, sound):
@@ -33,6 +26,7 @@ class WaitEvent(GameEvent):
     def __init__(self, name, time):
         super(WaitEvent, self).__init__(name)
         self.time = time
+        self.counter = 0
 
 class ConditionEvent(GameEvent):
     def __init__(self, name, condition):
