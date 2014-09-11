@@ -6,6 +6,17 @@ class Node(object):
         
         self.open = True
         self.links = []
+        self.nav_net = {}
+
+    def link_to(self, next_node):
+        link = ""
+        for l in self.links:
+            if l.node1 == next_node or l.node2 == next_node:
+                link = l
+        if link != "":
+            return link
+        else:
+            print("Error:", self,"does not link to",next_node)
 
 class Junction(Node):
     def __init__(self, name, pos, junction_id):

@@ -1,11 +1,13 @@
 import pygame
 
 class Entity(pygame.sprite.DirtySprite):
-    def __init__(self, breed, current_node, speed, img):
+    def __init__(self, breed, current_node, speed, img, destination):
         super(Entity, self).__init__()
         self.current_node = current_node
         self.next_node = ""
+        self.last_node = current_node
         self.breed = breed
+        self.destination = destination
 
         #movement
         self.speed = speed
@@ -53,6 +55,15 @@ class Entity(pygame.sprite.DirtySprite):
         else:
             self.rect.center = self.current_link(self.travelled)
         self.dirty = 1
+
+    def navigate(self, nav_net):
+        #check not already there
+        if self.current_node != self.destination:
+            #check not just been there
+            dest = nav_net[self.destination]
+            if self.last_node != dest:
+                self.move_to(dest, self.current_node.link_to(dest))
+            
 
     def update(self):
         if self.moving:

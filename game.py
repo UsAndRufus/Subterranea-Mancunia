@@ -57,9 +57,21 @@ def create_nodes():
     #deansgate.links = [quay, chepstow, mosi, jrlib]
 
     quay_vic = Link(quay, vic, (511,495), (869,410), 20)
-    #quay_vic = Link(quay, vic, (511,495), (1000,1000), 20)
-    quay.links = [quay_vic]
-    vic.links = [quay_vic]
+    quay_deans = Link(quay, deansgate, quay.pos, deansgate.pos, 20)
+    deans_jrlib = Link(deansgate, jrlib, deansgate.pos, jrlib.pos, 10)
+    deans_mosi = Link(deansgate, mosi, deansgate.pos, mosi.pos, 10)
+    deans_chepstow = Link(deansgate, chepstow, deansgate.pos, chepstow.pos, 15)
+    chepstow_pic = Link(chepstow, pic, chepstow.pos, pic.pos, 20)
+    pic_vic = Link(pic, vic, pic.pos, vic.pos, 20)
+    
+    quay.links = [quay_vic, quay_deans]
+    deansgate.links = [deans_jrlib, deans_mosi, deans_chepstow, quay_deans]
+    chepstow.links = [chepstow_pic, deans_chepstow]
+    vic.links = [quay_vic, pic_vic]
+    pic.links = [pic_vic, chepstow_pic]
+
+    jrlib.links = [deans_jrlib]
+    mosi.links = [deans_mosi]
 
     nodes = [quay, vic, pic, chepstow, deansgate, jrlib, mosi]
     #nodes = [quay, vic]
@@ -69,17 +81,19 @@ def create_nodes():
     return nodes
 
 def create_entities(nodes):
-    entity1 = Entity("Badger", nodes[1], 1,"images/Entities/triangle_alpha.png")
-    entity2 = Entity("Badger", nodes[0], 1,"images/Entities/triangle_alpha.png")
-    entity3 = Entity("Scientist", nodes[1], 2,"images/Entities/triangle_alpha.png")
+    entity1 = Entity("Badger", nodes[1], 1,"images/Entities/triangle_alpha.png", nodes[0])
+    entity2 = Entity("Badger", nodes[0], 1,"images/Entities/triangle_alpha.png", nodes[1])
+    entity3 = Entity("Scientist", nodes[1], 2,"images/Entities/triangle_alpha.png", nodes[0])
 
-    print(entity2)
-    entities = pygame.sprite.LayeredDirty(entity2)
+    entities = pygame.sprite.LayeredDirty()
+    print(entities)
+    #entities = pygame.sprite.LayeredDirty(entity2)
+    
     return entities
 
 def create_window(res_tuple, image_location):
     #create the screen
-    window = pygame.display.set_mode(res_tuple, NOFRAME)
+    window = pygame.display.set_mode(res_tuple)#, NOFRAME)
 
     pygame.mouse.set_visible(False)
 
@@ -211,7 +225,8 @@ pygame.font.init()
 default_font = pygame.font.SysFont("trebuchetms", 15)
 
 #setup server and client
-server = OSCServer( ("localhost", 7128) )
+'''
+server = OSCServer( ("localhost", 7132) )
 client = OSCClient()
 server.setClient(client)
 
@@ -221,6 +236,7 @@ server.addMsgHandler("/hardware/" + str(COMMANDER), hardware_callback)
 server.addMsgHandler("/hardware/" + str(RADIO), hardware_callback)
 server_thread = threading.Thread(target=server.serve_forever)
 server_thread.start()
+'''
 
 
 #create nodes
@@ -233,8 +249,6 @@ entities = create_entities(game.nodes)
 
 render_nodes(background, game.nodes, game.links)
 window.blit(background, background_rect)
-
-entities.clear(window, background)
 
 clock = pygame.time.Clock()
 
@@ -249,6 +263,29 @@ radio_event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":RADIO,"frequenc
 #pygame.event.post(radio_event)
 #pygame.event.post(commander_event)
 
+#--------------------------#
+# Navigation network setup #
+#--------------------------#
+
+#note here for nodes order - do not actually run line
+#nodes = [quay, vic, pic, chepstow, deansgate, jrlib, mosi]
+
+#quay
+game.nodes[0].nav_net = {game.nodes[1]:game.nodes[1],game.nodes[2]:game.nodes[1],game.nodes[3]:game.nodes[4],game.nodes[4]:game.nodes[4],game.nodes[5]:game.nodes[4],game.nodes[6]:game.nodes[4]}
+
+#vic
+game.nodes[1].nav_net = {game.nodes[0]:game.nodes[0],game.nodes[2]:game.nodes[2],game.nodes[3]:game.nodes[2],game.nodes[4]:game.nodes[0],game.nodes[5]:game.nodes[0],game.nodes[6]:game.nodes[0]}
+
+#pic
+#game.nodes[2]
+
+#chepstow
+#game.nodes[3]
+
+#deansgate
+#game.nodes[4]
+
+
 #----------------#
 # Game Sequences #
 #----------------#
@@ -256,7 +293,7 @@ radio_event = pygame.event.Event(NETWORK_HARDWARE,{"hardware_id":RADIO,"frequenc
 #Test sequence
 _phone1 = PhoneEvent("phone1", "sounds/ring.wav")
 #enemies1 is a list of enemie! Not an event!
-_enemies1 = [Entity("Badger", game.nodes[3], 1,"images/Entities/triangle_alpha.png")]
+_enemies1 = [Entity("Badger", game.nodes[0], 1,"images/Entities/triangle_alpha.png", game.nodes[2])]
 _spawn1 = SpawnEvent("spawn1", _enemies1)
 _cond1 = ConditionEvent("cond1", "fake condition")
 _sound1 = PhoneEvent("sound1", "sounds/fake.wav")
@@ -278,11 +315,13 @@ while running:
 
     frame += 1
 
+    '''
     #message sending testing
     msg = OSCMessage("/user/1")
     msg.append("hellooo tharrr")
     msg.append(100.1)
     #server.client.sendto(msg,("localhost", 7110))
+    '''
 
     #printer testing
     '''
@@ -332,8 +371,8 @@ while running:
             if isinstance(current_event, SpawnEvent):
                 print("spawn")
                 for e in current_event.enemies:
-                    print(e)
                     entities.add(e)
+                    entities.clear(window, background)
             elif isinstance(current_event, PhoneEvent):
                 print("phone")
             elif isinstance(current_event, SoundEvent):
@@ -344,13 +383,11 @@ while running:
                 print("condition")
             seq_pos += 1
          
-
+    
     #update game state
-    if entities.sprites()[0].moving == False:
-        if entities.sprites()[0].current_node.name == "Quay Street":
-            entities.sprites()[0].move_to(game.nodes[1], game.nodes[0].links[0])
-        else:
-            entities.sprites()[0].move_to(game.nodes[0], game.nodes[1].links[0])
+    for entity in entities.sprites():
+        if entity.moving == False:
+            entity.navigate(entity.current_node.nav_net)
 
     entities.update()
 
@@ -361,7 +398,7 @@ while running:
     pygame.display.update(dirty_rects)
 
 #if we quit
-server.close()
+#server.close()
 pygame.quit()
 sys.exit()
 
