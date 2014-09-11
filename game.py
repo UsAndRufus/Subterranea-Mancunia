@@ -122,7 +122,7 @@ def render_nodes(background, nodes, links):
         
         if isinstance(node, Junction):
             #draw Junction
-            if node.isOn:
+            if not node.open:
                 width = 0
             else:
                 width = 5
@@ -277,14 +277,16 @@ game.nodes[0].nav_net = {game.nodes[1]:game.nodes[1],game.nodes[2]:game.nodes[1]
 game.nodes[1].nav_net = {game.nodes[0]:game.nodes[0],game.nodes[2]:game.nodes[2],game.nodes[3]:game.nodes[2],game.nodes[4]:game.nodes[0],game.nodes[5]:game.nodes[0],game.nodes[6]:game.nodes[0]}
 
 #pic
-#game.nodes[2]
+game.nodes[2].nav_net = {game.nodes[0]:game.nodes[1],game.nodes[1]:game.nodes[1],game.nodes[3]:game.nodes[3],game.nodes[4]:game.nodes[3],game.nodes[5]:game.nodes[3],game.nodes[6]:game.nodes[3]}
 
 #chepstow
-#game.nodes[3]
+game.nodes[3].nav_net = {game.nodes[0]:game.nodes[4],game.nodes[1]:game.nodes[3],game.nodes[2]:game.nodes[2],game.nodes[4]:game.nodes[4],game.nodes[5]:game.nodes[4],game.nodes[6]:game.nodes[4]}
 
 #deansgate
-#game.nodes[4]
+game.nodes[4].nav_net = {game.nodes[0]:game.nodes[0],game.nodes[1]:game.nodes[0],game.nodes[2]:game.nodes[3],game.nodes[3]:game.nodes[3],game.nodes[5]:game.nodes[5],game.nodes[6]:game.nodes[6]}
 
+#block off some nodes
+#game.nodes[0].open = False
 
 #----------------#
 # Game Sequences #
@@ -293,7 +295,7 @@ game.nodes[1].nav_net = {game.nodes[0]:game.nodes[0],game.nodes[2]:game.nodes[2]
 #Test sequence
 _phone1 = PhoneEvent("phone1", "sounds/ring.wav")
 #enemies1 is a list of enemie! Not an event!
-_enemies1 = [Entity("Badger", game.nodes[0], 1,"images/Entities/triangle_alpha.png", game.nodes[2])]
+_enemies1 = [Entity("Badger", game.nodes[1], 1,"images/Entities/triangle_alpha.png", game.nodes[5])]
 _spawn1 = SpawnEvent("spawn1", _enemies1)
 _cond1 = ConditionEvent("cond1", "fake condition")
 _sound1 = PhoneEvent("sound1", "sounds/fake.wav")
@@ -354,19 +356,17 @@ while running:
                 print("commander")
             if event.hardware_id == RADIO:
                 print("radio")
-        elif event.type == KEYDOWN or event.type == QUIT:
+        elif event.type == KEYDOWN:
+            for n in game.nodes:
+                n.open = not n.open
+                render_nodes(background, game.nodes, game.links)
+        elif event.type == QUIT:
             print("FPS: " + str(clock.get_fps()))
             running = False
-        elif event.type == MOUSEBUTTONDOWN:
-            game.nodes[0].open = not game.nodes[0].open
-            game.nodes[1].open = not game.nodes[1].open
 
     #handle sequence events
     if seq_pos < len(test_seq):
         current_event = test_seq[seq_pos]
-
-    
-    
         if not current_event.finished and not current_event.running:
             if isinstance(current_event, SpawnEvent):
                 print("spawn")

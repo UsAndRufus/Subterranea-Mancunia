@@ -1,4 +1,5 @@
 import pygame
+import random
 
 class Entity(pygame.sprite.DirtySprite):
     def __init__(self, breed, current_node, speed, img, destination):
@@ -31,16 +32,17 @@ class Entity(pygame.sprite.DirtySprite):
             else:
                 self.reverse = False
         else:
-            print("Error: next_node is closed")
+            print("next_node is closed")
 
     def move(self):
         #calculate step based on speed, framerate, and length
         dist = 1 / float(self.speed * 60 * self.current_link.length)
+        dist *= 3
         self.travelled += dist
         #if next_node becomes closed, go back to where you came from
         #but only if you can see that it is closed
         if not self.next_node.open:
-            if self.travelled > 0.9:
+            if self.travelled > 0.8:
                 self.reverse = not self.reverse
                 temp = self.next_node
                 self.next_node = self.current_node
@@ -61,8 +63,26 @@ class Entity(pygame.sprite.DirtySprite):
         if self.current_node != self.destination:
             #check not just been there
             dest = nav_net[self.destination]
-            if self.last_node != dest:
+            #check not closed and you haven't just been there
+            if dest.open and self.last_node != dest:
+                #if  we haven't, go there
+                print("standard")
                 self.move_to(dest, self.current_node.link_to(dest))
+            else:
+                #else go somewhere random
+                #get new destination
+                n = random.randint(0,(len(self.current_node.links)-1))
+                #get new link
+                new_link = self.current_node.links[n]
+                #get new dest from link
+                if new_link.node1 != self.current_node:
+                    new_dest = new_link.node1
+                else:
+                    new_dest = new_link.node2
+                print("blocked, random move")
+                #move there
+                #if the move fails here, the navigate call will make entity move next frame
+                self.move_to(new_dest, self.current_node.link_to(new_dest))
             
 
     def update(self):
@@ -73,6 +93,7 @@ class Entity(pygame.sprite.DirtySprite):
             else:
                 self.travelled = 0
                 self.moving = False
+                self.last_node = self.current_node
                 self.current_node = self.next_node
                 print(self.current_node.name)
                 
